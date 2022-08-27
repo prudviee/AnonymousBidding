@@ -182,53 +182,60 @@ contract BidForCarBodies is MyContract{
 //Bidding Function ---------------------------------------------
     function biddingForCarBody() public  {
         
-        require(CarBodyManufacturerBid_TATA.quantity > CarBodySupplierBid_VEDANTHA.quantity && CarBodyManufacturerBid_MARUTHI.quantity > CarBodySupplierBid_VEDANTHA.quantity,"INVALID BID");
-
-        if(CarBodyManufacturerBid_MARUTHI.quantity > CarBodySupplierBid_VEDANTHA.quantity && CarBodyManufacturerBid_TATA.quantity < CarBodySupplierBid_VEDANTHA.quantity){
+        if(CarBodyManufacturerBid_TATA.quantity > CarBodySupplierBid_VEDANTHA.quantity && CarBodyManufacturerBid_MARUTHI.quantity > CarBodySupplierBid_VEDANTHA.quantity){
+            tataResult = BidResult.LOST;
+            maruthiResult = BidResult.LOST;
+        }
+        else{
+            if(CarBodyManufacturerBid_MARUTHI.quantity > CarBodySupplierBid_VEDANTHA.quantity && CarBodyManufacturerBid_TATA.quantity < CarBodySupplierBid_VEDANTHA.quantity){
                 tataResult = BidResult.WON;
                 maruthiResult = BidResult.LOST;
             }
         
-        else if (CarBodyManufacturerBid_MARUTHI.quantity < CarBodySupplierBid_VEDANTHA.quantity && CarBodyManufacturerBid_TATA.quantity > CarBodySupplierBid_VEDANTHA.quantity){
+            else if (CarBodyManufacturerBid_MARUTHI.quantity < CarBodySupplierBid_VEDANTHA.quantity && CarBodyManufacturerBid_TATA.quantity > CarBodySupplierBid_VEDANTHA.quantity){
                 tataResult = BidResult.LOST;
                 maruthiResult = BidResult.WON;
             }
         
-        else if (CarBodyManufacturerBid_MARUTHI.quantity < CarBodySupplierBid_VEDANTHA.quantity && CarBodyManufacturerBid_TATA.quantity < CarBodySupplierBid_VEDANTHA.quantity){
+            else if (CarBodyManufacturerBid_MARUTHI.quantity < CarBodySupplierBid_VEDANTHA.quantity && CarBodyManufacturerBid_TATA.quantity < CarBodySupplierBid_VEDANTHA.quantity){
             
-            if(CarBodyManufacturerBid_MARUTHI.quantity > NumberOfCarBodiesNeeded_MARUTHI && CarBodyManufacturerBid_TATA.quantity > NumberOfCarBodiesNeeded_MARUTHI){
+                if(CarBodyManufacturerBid_MARUTHI.quantity > NumberOfCarBodiesNeeded_MARUTHI && CarBodyManufacturerBid_TATA.quantity > NumberOfCarBodiesNeeded_MARUTHI){
  //check the algorithm for this-------------------------------------------------------------------------------------------------------               
-                if(CarBodyManufacturerBid_MARUTHI.amount > CarBodyManufacturerBid_TATA.quantity){
-                    tataResult = BidResult.LOST;
-                    maruthiResult = BidResult.WON;
-                }
-                else{
+                    if(CarBodyManufacturerBid_MARUTHI.amount > CarBodyManufacturerBid_TATA.quantity){
+                        tataResult = BidResult.LOST;
+                        maruthiResult = BidResult.WON;
+                    }
+                    else{
+                        tataResult = BidResult.WON;
+                        maruthiResult = BidResult.LOST;
+                    }}
+                else if (CarBodyManufacturerBid_MARUTHI.quantity > NumberOfCarBodiesNeeded_MARUTHI && CarBodyManufacturerBid_TATA.quantity == NumberOfCarBodiesNeeded_MARUTHI){
                     tataResult = BidResult.WON;
                     maruthiResult = BidResult.LOST;
                 }
-            if (CarBodyManufacturerBid_MARUTHI.quantity > NumberOfCarBodiesNeeded_MARUTHI && CarBodyManufacturerBid_TATA.quantity == NumberOfCarBodiesNeeded_MARUTHI){
-                tataResult = BidResult.WON;
-                maruthiResult = BidResult.LOST;
-            }
-            else if (CarBodyManufacturerBid_MARUTHI.quantity == NumberOfCarBodiesNeeded_MARUTHI && CarBodyManufacturerBid_TATA.quantity > NumberOfCarBodiesNeeded_MARUTHI){
-                tataResult = BidResult.LOST;
-                maruthiResult = BidResult.WON;
-            }
-            else if ((CarBodyManufacturerBid_MARUTHI.quantity == NumberOfCarBodiesNeeded_MARUTHI && CarBodyManufacturerBid_TATA.quantity == NumberOfCarBodiesNeeded_MARUTHI) || 
-                     (CarBodyManufacturerBid_MARUTHI.quantity < NumberOfCarBodiesNeeded_MARUTHI && CarBodyManufacturerBid_TATA.quantity == NumberOfCarBodiesNeeded_MARUTHI) ||
-                     (CarBodyManufacturerBid_MARUTHI.quantity == NumberOfCarBodiesNeeded_MARUTHI && CarBodyManufacturerBid_TATA.quantity < NumberOfCarBodiesNeeded_MARUTHI) ||
-                     (CarBodyManufacturerBid_MARUTHI.quantity < NumberOfCarBodiesNeeded_MARUTHI && CarBodyManufacturerBid_TATA.quantity < NumberOfCarBodiesNeeded_MARUTHI))
-                     {
-                        if(CarBodyManufacturerBid_MARUTHI.amount > CarBodyManufacturerBid_TATA.quantity){
-                            tataResult = BidResult.LOST;
-                            maruthiResult = BidResult.WON;
+                else if (CarBodyManufacturerBid_MARUTHI.quantity == NumberOfCarBodiesNeeded_MARUTHI && CarBodyManufacturerBid_TATA.quantity > NumberOfCarBodiesNeeded_MARUTHI){
+                    tataResult = BidResult.LOST;
+                    maruthiResult = BidResult.WON;
+                }
+                else if ((CarBodyManufacturerBid_MARUTHI.quantity == NumberOfCarBodiesNeeded_MARUTHI && CarBodyManufacturerBid_TATA.quantity == NumberOfCarBodiesNeeded_MARUTHI) || 
+                        (CarBodyManufacturerBid_MARUTHI.quantity < NumberOfCarBodiesNeeded_MARUTHI && CarBodyManufacturerBid_TATA.quantity == NumberOfCarBodiesNeeded_MARUTHI) ||
+                        (CarBodyManufacturerBid_MARUTHI.quantity == NumberOfCarBodiesNeeded_MARUTHI && CarBodyManufacturerBid_TATA.quantity < NumberOfCarBodiesNeeded_MARUTHI) ||
+                        (CarBodyManufacturerBid_MARUTHI.quantity < NumberOfCarBodiesNeeded_MARUTHI && CarBodyManufacturerBid_TATA.quantity < NumberOfCarBodiesNeeded_MARUTHI))
+                        {
+                            if(CarBodyManufacturerBid_MARUTHI.amount > CarBodyManufacturerBid_TATA.quantity){
+                                tataResult = BidResult.LOST;
+                                maruthiResult = BidResult.WON;
+                            }
+                            else{
+                                tataResult = BidResult.WON;
+                                maruthiResult = BidResult.LOST;
+                            }    
                         }
-                        else{
-                            tataResult = BidResult.WON;
-                            maruthiResult = BidResult.LOST;
-                        }    
-                    }
+                }
             }
-        }
+         
+    }
+    function viewBidResult() public view returns(BidResult,BidResult){
+        return (tataResult,maruthiResult);
     }
 }
