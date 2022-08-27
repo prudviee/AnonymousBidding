@@ -185,6 +185,8 @@ contract BidForCarBodies is MyContract{
 //Bidding Function ---------------------------------------------
     function biddingForCarBody() public  {
         
+        uint carBodiesLeftForSupplier_VEDANTHA;
+
         if(CarBodyManufacturerBid_TATA.quantity > CarBodySupplierBid_VEDANTHA.quantity && CarBodyManufacturerBid_MARUTHI.quantity > CarBodySupplierBid_VEDANTHA.quantity){
             tataResult = BidResult.LOST;
             maruthiResult = BidResult.LOST;
@@ -210,19 +212,54 @@ contract BidForCarBodies is MyContract{
             
                 if(CarBodyManufacturerBid_MARUTHI.quantity > NumberOfCarBodiesNeeded_MARUTHI && CarBodyManufacturerBid_TATA.quantity > NumberOfCarBodiesNeeded_TATA){
  //check the algorithm for this-------------------------------------------------------------------------------------------------------               
-                    if(CarBodyManufacturerBid_MARUTHI.amount > CarBodyManufacturerBid_TATA.quantity){
+                    if(CarBodyManufacturerBid_MARUTHI.quantity + CarBodyManufacturerBid_TATA.quantity <= CarBodySupplierBid_VEDANTHA.quantity){
+                        tataResult = BidResult.WON;
+                        maruthiResult = BidResult.WON;
+                        carBodiesWonInAuction_TATA = CarBodyManufacturerBid_TATA.quantity;
+                        carBodiesWonInAuction_MARUTHI = CarBodyManufacturerBid_MARUTHI.quantity;
+                    }
+                    else if(NumberOfCarBodiesNeeded_MARUTHI +  NumberOfCarBodiesNeeded_TATA <= CarBodySupplierBid_VEDANTHA.quantity){
+                            tataResult = BidResult.WON;
+                            maruthiResult = BidResult.WON;
+                            carBodiesWonInAuction_TATA = NumberOfCarBodiesNeeded_TATA;
+                            carBodiesWonInAuction_MARUTHI = NumberOfCarBodiesNeeded_MARUTHI;
+                            
+                            carBodiesLeftForSupplier_VEDANTHA = CarBodySupplierBid_VEDANTHA.quantity - NumberOfCarBodiesNeeded_TATA - NumberOfCarBodiesNeeded_MARUTHI;
+                            
+                            if (carBodiesLeftForSupplier_VEDANTHA != 0){
+                                
+                                if(CarBodyManufacturerBid_MARUTHI.amount > CarBodyManufacturerBid_TATA.quantity){
+                                    
+                                    carBodiesWonInAuction_MARUTHI += carBodiesLeftForSupplier_VEDANTHA;
+                                }
+                                else{
+                                    carBodiesWonInAuction_TATA += carBodiesLeftForSupplier_VEDANTHA;
+                                }
+                            }
+                            else{
+                            tataResult = BidResult.WON;
+                            maruthiResult = BidResult.LOST;
+                            carBodiesWonInAuction_TATA = CarBodyManufacturerBid_TATA.quantity;
+                            carBodiesWonInAuction_MARUTHI = CarBodySupplierBid_VEDANTHA.quantity - CarBodyManufacturerBid_TATA.quantity;
+                            }
+                        }
+                    }
+                    else{
+                        if(CarBodyManufacturerBid_MARUTHI.amount > CarBodyManufacturerBid_TATA.quantity){
                         tataResult = BidResult.LOST;
                         maruthiResult = BidResult.WON;
                         carBodiesWonInAuction_TATA = CarBodySupplierBid_VEDANTHA.quantity - CarBodyManufacturerBid_MARUTHI.quantity;
                         carBodiesWonInAuction_MARUTHI = CarBodyManufacturerBid_MARUTHI.quantity;
-                    }
-                    else{
+                        }
+                        else{
                         tataResult = BidResult.WON;
                         maruthiResult = BidResult.LOST;
                         carBodiesWonInAuction_TATA = CarBodyManufacturerBid_TATA.quantity;
                         carBodiesWonInAuction_MARUTHI = CarBodySupplierBid_VEDANTHA.quantity - CarBodyManufacturerBid_TATA.quantity;
-                    }}
-                else if (CarBodyManufacturerBid_MARUTHI.quantity > NumberOfCarBodiesNeeded_MARUTHI && CarBodyManufacturerBid_TATA.quantity == NumberOfCarBodiesNeeded_TATA){
+                        }
+                    }
+                }
+                else if (CarBodyManufacturerBid_MARUTHI.quantity > NumberOfCarBodiesNeeded_MARUTHI && NumberOfCarBodiesNeeded_TATA == NumberOfCarBodiesNeeded_TATA){
                     tataResult = BidResult.WON;
                     maruthiResult = BidResult.LOST;
                     carBodiesWonInAuction_TATA = CarBodyManufacturerBid_TATA.quantity;
