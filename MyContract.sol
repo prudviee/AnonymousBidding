@@ -3,37 +3,48 @@ pragma solidity ^0.8.7;
 
 contract MyContract{
 
-
+// struct for roles
     struct Manufacturer{
         string name;
         string supplierForTyres;
-        string clientNameForBody;
+        string supplierForBody;
+        address manufacturerAddress;
     }
 
 
     struct CarBodySupplier{
-        string supplierName;
+        string name;
         //string supplierType;
+        address carBodySupplierAddress;
     }
 
 
     struct CarTyreSupplier{
-        string supplierName;
+        string name;
         //string supplierType;
         string suppliesTo;
+        address carTyreSupplierAddress;
     }
 
 
 //variables used for actors
 
 
-    Manufacturer manufacturer;
+    Manufacturer TataManufacturer;
+    Manufacturer MaruthiManufacturer;
 
     CarBodySupplier carBodySupplier;
-    CarTyreSupplier carTyreSupplier;
-    
 
-//variables for setting supply limits
+    CarTyreSupplier MrfCarTyreSupplier;
+    CarTyreSupplier CeatCarTyreSupplier;
+    
+//add modifiers to the view functions
+    modifier OnlyCarBodySupplier{
+        require(msg.sender == carBodySupplier.carBodySupplierAddress);
+        _;
+    }
+
+//variables for setting supply limits-------
 
 
     uint CarTyreSupplierLimit_MRF;
@@ -47,24 +58,35 @@ contract MyContract{
 //Listing all the manufacturers and suppliers------------------------------------------------------
 
 
-    function setTataManufacturer() public {
-        manufacturer = Manufacturer("TATA","MRF","VEDANTA");
+    function setTataManufacturer(string memory Name,string memory Tyres,string memory Body,address Ad) public {
+        TataManufacturer.name = Name;
+        TataManufacturer.supplierForTyres = Tyres;
+        TataManufacturer.supplierForBody = Body;
+        TataManufacturer.manufacturerAddress = Ad;
     }
 
-    function setMaruthiManufacturer() public {
-        manufacturer = Manufacturer("MARUTHI","CEAT","VEDANTA");
+    function setMaruthiManufacturer(string memory Name ,string memory Tyres ,string memory Body ,address Ad) public {
+        MaruthiManufacturer.name = Name;
+        MaruthiManufacturer.supplierForTyres = Tyres;
+        MaruthiManufacturer.supplierForBody = Body;
+        MaruthiManufacturer.manufacturerAddress = Ad;
     }
 
-    function setVedanthaSupplier() public {
-        carBodySupplier = CarBodySupplier("VEDANTHA");
+    function setVedanthaSupplier(string memory Name, address Ad) public {
+        carBodySupplier.name = Name;
+        carBodySupplier.carBodySupplierAddress = Ad;
     }
 
-    function setMrfSupplier() public {
-        carTyreSupplier = CarTyreSupplier("MRF","TATA");
+    function setMrfSupplier(string memory Name, string memory SuppliesTo, address Ad) public {
+        MrfCarTyreSupplier.name = Name;
+        MrfCarTyreSupplier.suppliesTo = SuppliesTo;
+        MrfCarTyreSupplier.carTyreSupplierAddress = Ad;
     }
 
-    function setCeatSupplier() public {
-        carTyreSupplier = CarTyreSupplier("CEAT","MARUTHI");
+    function setCeatSupplier(string memory Name, string memory SuppliesTo, address Ad) public {
+        CeatCarTyreSupplier.name = Name;
+        CeatCarTyreSupplier.suppliesTo = SuppliesTo;
+        CeatCarTyreSupplier.carTyreSupplierAddress = Ad;
     }
 
 // Setting supplier limits for tyres------------------------------------------------------
@@ -182,6 +204,38 @@ contract BidForCarBodies is MyContract{
         return CarBodyManufacturerBid_MARUTHI;
     }
 
+
+   //Tyre Manufacturer Bid Functions --------------------- Input ---------------------- And Outputs -----------------------
+
+    function carTyreManufacturerBid_TATA(uint256 quantity, uint256 amount)
+        public
+    {
+        CarTyreManufacturerBid_TATA = Bid(quantity, amount);
+    }
+
+    function viewCarTyreManufacturerBid_TATA()
+        public
+        view
+        returns (Bid memory)
+    {
+        return CarTyreManufacturerBid_TATA;
+    }
+
+    function carTyreManufacturerBid_MARUTHI(uint256 quantity, uint256 amount)
+        public
+    {
+        CarTyreManufacturerBid_MARUTHI = Bid(quantity, amount);
+    }
+
+    function viewCarTyreManufacturerBid_MARUTHI()
+        public
+        view
+        returns (Bid memory)
+    {
+        return CarTyreManufacturerBid_MARUTHI;
+    }
+
+
 //Bidding Function ---------------------------------------------
     function biddingForCarBody() public  {
         
@@ -291,9 +345,9 @@ contract BidForCarBodies is MyContract{
                         }
                 }
             }
-         
-    }
-    function viewBidResult() public view returns(BidResult,BidResult){
+          function viewBidResult() public view returns(BidResult,BidResult){
         return (tataResult,maruthiResult);
     }
-}
+    }
+   
+
