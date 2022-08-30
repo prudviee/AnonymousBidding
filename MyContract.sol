@@ -109,10 +109,6 @@ contract MyContract {
     uint256 CarTyreSupplierLimit_CEAT;
     uint256 CarBodySupplierLimit_VEDANTHA;
 
-    //uint CarBodySupplierLimit_VEDANTHA;
-
-    uint256 NumberOfCarBodiesNeeded_TATA = numberOfCarBodiesNeeded_TATA();
-    uint256 NumberOfCarBodiesNeeded_MARUTHI = numberOfCarBodiesNeeded_MARUTHI();
 
     //Listing all the manufacturers and suppliers------------------------------------------------------
 
@@ -159,8 +155,46 @@ contract MyContract {
         CeatCarTyreSupplier.carTyreSupplierAddress = msg.sender;
     }
 
+}
+
+//Bidding contract------------------------------------------------------------------
+
+contract BidForCarBodies is MyContract {
+    enum BidResult {
+        WON,
+        LOST
+    }
+
+    BidResult tataResult;
+    BidResult maruthiResult;
+
+    struct Bid {
+        uint256 quantity;
+        uint256 amount;
+    }
+
+    uint256 carBodiesWonInAuction_TATA = 0;
+    uint256 carBodiesWonInAuction_MARUTHI = 0;
+
+    //placing for bids
+
+    Bid CarBodySupplierBid_VEDANTHA;
+    Bid CarTyreSupplierBid_MRF;
+    Bid CarTyreSupplierBid_CEAT;
+    Bid CarBodyManufacturerBid_TATA;
+    Bid CarBodyManufacturerBid_MARUTHI;
+    Bid CarTyreManufacturerBid_TATA;
+    Bid CarTyreManufacturerBid_MARUTHI;
+
+    //uint CarBodySupplierLimit_VEDANTHA;
+
+    uint256 NumberOfCarBodiesNeeded_TATA = numberOfCarBodiesNeeded_TATA();
+    uint256 NumberOfCarBodiesNeeded_MARUTHI = numberOfCarBodiesNeeded_MARUTHI();
+
+
     // Setting supplier limits for tyres------------------------------------------------------
     // the 6 functions below have been tested
+
 
     function setCarTyreSupplierLimit_MRF(uint256 limit) public {
         require(
@@ -208,36 +242,6 @@ contract MyContract {
     function numberOfCarBodiesNeeded_MARUTHI() public view returns (uint256) {
         return CarTyreSupplierLimit_CEAT / 4;
     }
-}
-
-//Bidding contract------------------------------------------------------------------
-
-contract BidForCarBodies is MyContract {
-    enum BidResult {
-        WON,
-        LOST
-    }
-
-    BidResult tataResult;
-    BidResult maruthiResult;
-
-    struct Bid {
-        uint256 quantity;
-        uint256 amount;
-    }
-
-    uint256 carBodiesWonInAuction_TATA = 0;
-    uint256 carBodiesWonInAuction_MARUTHI = 0;
-
-    //placing for bids
-
-    Bid CarBodySupplierBid_VEDANTHA;
-    Bid CarTyreSupplierBid_MRF;
-    Bid CarTyreSupplierBid_CEAT;
-    Bid CarBodyManufacturerBid_TATA;
-    Bid CarBodyManufacturerBid_MARUTHI;
-    Bid CarTyreManufacturerBid_TATA;
-    Bid CarTyreManufacturerBid_MARUTHI;
 
     //Supplier Bid Functions --------------------- Input ---------------------- And Outputs -----------------------
     function carBodySupplierBid(uint256 amount) public OnlyCarBodySupplier {
