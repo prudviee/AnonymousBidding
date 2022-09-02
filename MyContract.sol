@@ -14,22 +14,45 @@ contract MyContract {
         string name;
         string supplierForTyres;
         string supplierForBody;
-        address manufacturerAddress;
+        address payable manufacturerAddress;
         string hashedTyreBid;
         string hashedCarBodyBid;
+        uint256[] tyre;
+        uint256[] carBody;
+        uint256 carPrice;
+        bool paid;
+    }
+
+    struct Car {
+        string manufacturer;
+        int256 tyreId;
+        int256 carBodyId;
+        string supplierForTyres;
+        string supplierForBody;
+        address manufacturerAddress;
+    }
+
+    struct Customer {
+        string name;
+        address customerAddress;
+        Car car;
     }
 
     struct CarBodySupplier {
         string name;
         //string supplierType;
-        address carBodySupplierAddress;
+        address payable carBodySupplierAddress;
+        uint256[] item;
+        uint256 limit;
     }
 
     struct CarTyreSupplier {
         string name;
         //string supplierType;
         string suppliesTo;
-        address carTyreSupplierAddress;
+        address payable carTyreSupplierAddress;
+        uint256[] item;
+        uint256 limit;
     }
 
     //variables used for actors
@@ -41,6 +64,8 @@ contract MyContract {
 
     CarTyreSupplier MrfCarTyreSupplier;
     CarTyreSupplier CeatCarTyreSupplier;
+
+    Customer[] customer;
 
     //add modifiers to the view functions
     modifier OnlyCarBodySupplier() {
@@ -109,6 +134,10 @@ contract MyContract {
     uint256 CarTyreSupplierLimit_CEAT;
     uint256 CarBodySupplierLimit_VEDANTHA;
 
+    //uint CarBodySupplierLimit_VEDANTHA;
+
+    uint256 NumberOfCarBodiesNeeded_TATA = numberOfCarBodiesNeeded_TATA();
+    uint256 NumberOfCarBodiesNeeded_MARUTHI = numberOfCarBodiesNeeded_MARUTHI();
 
     //Listing all the manufacturers and suppliers------------------------------------------------------
 
@@ -120,7 +149,8 @@ contract MyContract {
         TataManufacturer.name = Name;
         TataManufacturer.supplierForTyres = Tyres;
         TataManufacturer.supplierForBody = Body;
-        TataManufacturer.manufacturerAddress = msg.sender;
+        TataManufacturer.manufacturerAddress = payable(msg.sender);
+        TataManufacturer.paid = false;
     }
 
     function setMaruthiManufacturer(
@@ -131,12 +161,13 @@ contract MyContract {
         MaruthiManufacturer.name = Name;
         MaruthiManufacturer.supplierForTyres = Tyres;
         MaruthiManufacturer.supplierForBody = Body;
-        MaruthiManufacturer.manufacturerAddress = msg.sender;
+        MaruthiManufacturer.manufacturerAddress = payable(msg.sender);
+        MaruthiManufacturer.paid = false;
     }
 
     function setVedanthaSupplier(string memory Name) public {
         carBodySupplier.name = Name;
-        carBodySupplier.carBodySupplierAddress = msg.sender;
+        carBodySupplier.carBodySupplierAddress = payable(msg.sender);
     }
 
     function setMrfSupplier(string memory Name, string memory SuppliesTo)
@@ -144,7 +175,7 @@ contract MyContract {
     {
         MrfCarTyreSupplier.name = Name;
         MrfCarTyreSupplier.suppliesTo = SuppliesTo;
-        MrfCarTyreSupplier.carTyreSupplierAddress = msg.sender;
+        MrfCarTyreSupplier.carTyreSupplierAddress = payable(msg.sender);
     }
 
     function setCeatSupplier(string memory Name, string memory SuppliesTo)
@@ -152,9 +183,170 @@ contract MyContract {
     {
         CeatCarTyreSupplier.name = Name;
         CeatCarTyreSupplier.suppliesTo = SuppliesTo;
-        CeatCarTyreSupplier.carTyreSupplierAddress = msg.sender;
+        CeatCarTyreSupplier.carTyreSupplierAddress = payable(msg.sender);
     }
 
+    function setCustomer(string memory Name) public {
+        customer[customer.length] = Customer({
+            name: Name,
+            customerAddress: msg.sender,
+            car: Car({
+                manufacturer: "",
+                tyreId: -1,
+                carBodyId: -1,
+                supplierForTyres: "",
+                supplierForBody: "",
+                manufacturerAddress: msg.sender
+            })
+        });
+    }
+
+    // Setting supplier limits for tyres------------------------------------------------------
+    // the 6 functions below have been tested
+
+    function setCarTyreSupplierLimit_MRF(uint256 limit) public {
+        require(
+            msg.sender == MrfCarTyreSupplier.carTyreSupplierAddress,
+            "Only MRF supplier can set the limit"
+        );
+        CarTyreSupplierLimit_MRF = limit;
+        MrfCarTyreSupplier.limit = limit;
+    }
+
+    function viewCarTyreSupplierLimit_MRF() public view returns (uint256) {
+        return CarTyreSupplierLimit_MRF;
+    }
+
+    function setCarTyreSupplierLimit_CEAT(uint256 limit) public {
+        require(
+            msg.sender == CeatCarTyreSupplier.carTyreSupplierAddress,
+            "Only CEAT supplier can set the limit"
+        );
+        CarTyreSupplierLimit_CEAT = limit;
+        CeatCarTyreSupplier.limit = limit;
+    }
+
+    function viewCarTyreSupplierLimit_CEAT() public view returns (uint256) {
+        return CarTyreSupplierLimit_CEAT;
+    }
+
+    function SetCarBodySupplyLimit_VEDANTHA(uint256 limit) public {
+        require(
+            msg.sender == carBodySupplier.carBodySupplierAddress,
+            "Only VEDANTHA supplier can set the limit"
+        );
+        CarBodySupplierLimit_VEDANTHA = limit;
+        carBodySupplier.limit = limit;
+    }
+
+    function viewCarBodySupplyLimit_VEDANTHA() public view returns (uint256) {
+        return CarBodySupplierLimit_VEDANTHA;
+    }
+
+    // car body counting------------------------------------------------------------
+    // two functions below are tested
+
+    function numberOfCarBodiesNeeded_TATA() public view returns (uint256) {
+        return CarTyreSupplierLimit_MRF / 4;
+    }
+
+    function numberOfCarBodiesNeeded_MARUTHI() public view returns (uint256) {
+        return CarTyreSupplierLimit_CEAT / 4;
+    }
+
+    // add unique identifier to the car body and the car tyre
+
+    function addTyre_MRF() public {
+        require(
+            msg.sender == MrfCarTyreSupplier.carTyreSupplierAddress,
+            "Only the supplier can add tyres"
+        );
+        for (uint256 i = 0; i < MrfCarTyreSupplier.limit; i++) {
+            MrfCarTyreSupplier.item.push(i);
+        }
+    }
+
+    function addTyre_CEAT() public {
+        require(
+            msg.sender == CeatCarTyreSupplier.carTyreSupplierAddress,
+            "Only the supplier can add tyres"
+        );
+        for (uint256 i = 0; i < CeatCarTyreSupplier.limit; i++) {
+            CeatCarTyreSupplier.item.push(i);
+        }
+    }
+
+    function addBody() public {
+        require(
+            msg.sender == carBodySupplier.carBodySupplierAddress,
+            "Only the supplier can add bodies"
+        );
+        for (uint256 i = 0; i < carBodySupplier.limit; i++) {
+            carBodySupplier.item.push(i);
+        }
+    }
+
+    // buying the car
+
+    function BuyCar_TATA() public payable {
+        // check if msg.sender is in the list of customers
+        for (uint256 i = 0; i < customer.length; ++i) {
+            if (msg.sender == customer[i].customerAddress) {
+                require(
+                    msg.value == TataManufacturer.carPrice,
+                    "The price paid does not match the price of the car"
+                );
+                require(
+                    TataManufacturer.carBody.length > 0 &&
+                        TataManufacturer.tyre.length >= 4,
+                    "Out of stock"
+                );
+                TataManufacturer.manufacturerAddress.transfer(msg.value);
+                customer[i].car.manufacturer = TataManufacturer.name;
+                customer[i].car.tyreId = int256(
+                    TataManufacturer.tyre[TataManufacturer.tyre.length - 1]
+                );
+                TataManufacturer.tyre.pop();
+                customer[i].car.tyreId = int256(
+                    TataManufacturer.tyre[TataManufacturer.tyre.length - 1]
+                );
+                TataManufacturer.tyre.pop();
+                customer[i].car.tyreId = int256(
+                    TataManufacturer.tyre[TataManufacturer.tyre.length - 1]
+                );
+                TataManufacturer.tyre.pop();
+                customer[i].car.tyreId = int256(
+                    TataManufacturer.tyre[TataManufacturer.tyre.length - 1]
+                );
+                TataManufacturer.tyre.pop();
+                customer[i].car.carBodyId = int256(
+                    TataManufacturer.carBody[
+                        TataManufacturer.carBody.length - 1
+                    ]
+                );
+                TataManufacturer.carBody.pop();
+                customer[i].car.supplierForTyres = TataManufacturer
+                    .supplierForTyres;
+                customer[i].car.supplierForBody = TataManufacturer
+                    .supplierForBody;
+                customer[i].car.manufacturerAddress = TataManufacturer
+                    .manufacturerAddress;
+                break;
+            }
+        }
+    }
+
+    function ViewCarDetails() public view returns (string[3] memory) {
+        for (uint256 i = 0; i < customer.length; ++i) {
+            if (msg.sender == customer[i].customerAddress) {
+                string[3] memory data;
+                data[0] = customer[i].car.manufacturer;
+                data[1] = customer[i].car.supplierForTyres;
+                data[2] = customer[i].car.supplierForBody;
+                return data;
+            }
+        }
+    }
 }
 
 //Bidding contract------------------------------------------------------------------
@@ -162,11 +354,12 @@ contract MyContract {
 contract BidForCarBodies is MyContract {
     enum BidResult {
         WON,
-        LOST
+        LOST,
+        DRAW
     }
 
-    BidResult tataResult;
-    BidResult maruthiResult;
+    BidResult tataResult = BidResult.DRAW;
+    BidResult maruthiResult = BidResult.DRAW;
 
     struct Bid {
         uint256 quantity;
@@ -185,63 +378,6 @@ contract BidForCarBodies is MyContract {
     Bid CarBodyManufacturerBid_MARUTHI;
     Bid CarTyreManufacturerBid_TATA;
     Bid CarTyreManufacturerBid_MARUTHI;
-
-    //uint CarBodySupplierLimit_VEDANTHA;
-
-    uint256 NumberOfCarBodiesNeeded_TATA = numberOfCarBodiesNeeded_TATA();
-    uint256 NumberOfCarBodiesNeeded_MARUTHI = numberOfCarBodiesNeeded_MARUTHI();
-
-
-    // Setting supplier limits for tyres------------------------------------------------------
-    // the 6 functions below have been tested
-
-
-    function setCarTyreSupplierLimit_MRF(uint256 limit) public {
-        require(
-            msg.sender == MrfCarTyreSupplier.carTyreSupplierAddress,
-            "Only MRF supplier can set the limit"
-        );
-        CarTyreSupplierLimit_MRF = limit;
-    }
-
-    function viewCarTyreSupplierLimit_MRF() public view returns (uint256) {
-        return CarTyreSupplierLimit_MRF;
-    }
-
-    function setCarTyreSupplierLimit_CEAT(uint256 limit) public {
-        require(
-            msg.sender == CeatCarTyreSupplier.carTyreSupplierAddress,
-            "Only CEAT supplier can set the limit"
-        );
-        CarTyreSupplierLimit_CEAT = limit;
-    }
-
-    function viewCarTyreSupplierLimit_CEAT() public view returns (uint256) {
-        return CarTyreSupplierLimit_CEAT;
-    }
-
-    function SetCarBodySupplyLimit_VEDANTHA(uint256 limit) public {
-        require(
-            msg.sender == carBodySupplier.carBodySupplierAddress,
-            "Only VEDANTHA supplier can set the limit"
-        );
-        CarBodySupplierLimit_VEDANTHA = limit;
-    }
-
-    function viewCarBodySupplyLimit_VEDANTHA() public view returns (uint256) {
-        return CarBodySupplierLimit_VEDANTHA;
-    }
-
-    // car body counting------------------------------------------------------------
-    // two functions below are tested
-
-    function numberOfCarBodiesNeeded_TATA() public view returns (uint256) {
-        return CarTyreSupplierLimit_MRF / 4;
-    }
-
-    function numberOfCarBodiesNeeded_MARUTHI() public view returns (uint256) {
-        return CarTyreSupplierLimit_CEAT / 4;
-    }
 
     //Supplier Bid Functions --------------------- Input ---------------------- And Outputs -----------------------
     function carBodySupplierBid(uint256 amount) public OnlyCarBodySupplier {
@@ -273,12 +409,18 @@ contract BidForCarBodies is MyContract {
 
     //Manufacturer Bid Functions --------------------- Input ---------------------- And Outputs -----------------------
 
-    function carBodyManufacturerBid_TATA(string memory hashedTyreBid, string memory hashedCarBodyBid)
+    function carBodyManufacturerBid_TATA(uint256 quantity, uint256 amount)
         public
         OnlyTATA
     {
-        TataManufacturer.hashedCarBodyBid = hashedCarBodyBid;
-        TataManufacturer.hashedTyreBid = hashedTyreBid;
+        require(
+            quantity <= CarBodySupplierLimit_VEDANTHA,
+            "The bid quantity exceeds the available supply limit"
+        );
+
+        CarBodyManufacturerBid_TATA = Bid(quantity, amount);
+        // TataManufacturer.hashedCarBodyBid = hashedCarBodyBid;
+        // TataManufacturer.hashedTyreBid = hashedTyreBid;
     }
 
     function viewCarBodyManufacturerBid_TATA()
@@ -293,6 +435,10 @@ contract BidForCarBodies is MyContract {
         public
         OnlyMaruti
     {
+        require(
+            quantity <= CarBodySupplierLimit_VEDANTHA,
+            "The bid quantity exceeds the supply limit"
+        );
         CarBodyManufacturerBid_MARUTHI = Bid(quantity, amount);
     }
 
@@ -310,6 +456,10 @@ contract BidForCarBodies is MyContract {
         public
         OnlyTATA
     {
+        require(
+            quantity <= CarTyreSupplierLimit_MRF,
+            "The bid quantity exceeds the supply limit"
+        );
         CarTyreManufacturerBid_TATA = Bid(quantity, amount);
     }
 
@@ -325,6 +475,10 @@ contract BidForCarBodies is MyContract {
         public
         OnlyMaruti
     {
+        require(
+            quantity <= CarTyreSupplierLimit_CEAT,
+            "The bid quantity exceeds the supply limit"
+        );
         CarTyreManufacturerBid_MARUTHI = Bid(quantity, amount);
     }
 
@@ -522,5 +676,99 @@ contract BidForCarBodies is MyContract {
 
     function viewBidResult() public view returns (BidResult, BidResult) {
         return (tataResult, maruthiResult);
+    }
+
+    function MakePayment() public payable {
+        if (tataResult == BidResult.WON) {
+            require(
+                msg.value ==
+                    carBodiesWonInAuction_TATA *
+                        CarBodySupplierBid_VEDANTHA.amount,
+                "incorrect amount"
+            );
+            carBodySupplier.carBodySupplierAddress.transfer(msg.value);
+            TataManufacturer.paid = true;
+        } else if (maruthiResult == BidResult.WON) {
+            require(
+                msg.value ==
+                    carBodiesWonInAuction_MARUTHI *
+                        CarBodySupplierBid_VEDANTHA.amount,
+                "incorrect amount"
+            );
+            carBodySupplier.carBodySupplierAddress.transfer(msg.value);
+            MaruthiManufacturer.paid = true;
+        }
+    }
+
+    function TransferCarBody() public payable {
+        if (tataResult == BidResult.WON) {
+            require(
+                msg.sender == carBodySupplier.carBodySupplierAddress,
+                "only supplier can transfer the ownership"
+            );
+            require(
+                TataManufacturer.paid == true,
+                "payment of the bid is pending by the manufacturer"
+            );
+            for (uint256 i = 0; i < carBodiesWonInAuction_TATA; ++i) {
+                TataManufacturer.carBody.push(
+                    carBodySupplier.item[carBodySupplier.item.length - 1]
+                );
+                carBodySupplier.item.pop();
+            }
+        }
+        if (maruthiResult == BidResult.WON) {
+            require(
+                msg.sender == carBodySupplier.carBodySupplierAddress,
+                "only supplier can transfer the ownership"
+            );
+            require(
+                MaruthiManufacturer.paid == true,
+                "payment of the bid is pending by the manufacturer"
+            );
+            for (uint256 i = 0; i < carBodiesWonInAuction_MARUTHI; ++i) {
+                MaruthiManufacturer.carBody.push(
+                    carBodySupplier.item[carBodySupplier.item.length - 1]
+                );
+                carBodySupplier.item.pop();
+            }
+        }
+    }
+
+    function TransferCarTyre() public {
+        if (tataResult == BidResult.WON) {
+            require(
+                msg.sender == carBodySupplier.carBodySupplierAddress,
+                "only supplier can transfer the ownership"
+            );
+            require(
+                TataManufacturer.paid == true,
+                "payment of the bid is pending by the manufacturer"
+            );
+            for (uint256 i = 0; i < CarTyreSupplierBid_MRF.quantity; ++i) {
+                TataManufacturer.tyre.push(
+                    MrfCarTyreSupplier.item[MrfCarTyreSupplier.item.length - 1]
+                );
+                MrfCarTyreSupplier.item.pop();
+            }
+        }
+        if (maruthiResult == BidResult.WON) {
+            require(
+                msg.sender == carBodySupplier.carBodySupplierAddress,
+                "only supplier can transfer the ownership"
+            );
+            require(
+                MaruthiManufacturer.paid == true,
+                "payment of the bid is pending by the manufacturer"
+            );
+            for (uint256 i = 0; i < CarTyreSupplierBid_MRF.quantity; ++i) {
+                MaruthiManufacturer.tyre.push(
+                    CeatCarTyreSupplier.item[
+                        CeatCarTyreSupplier.item.length - 1
+                    ]
+                );
+                CeatCarTyreSupplier.item.pop();
+            }
+        }
     }
 }
