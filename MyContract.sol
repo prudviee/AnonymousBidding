@@ -338,6 +338,55 @@ contract MyContract {
         }
     }
 
+    function BuyCar_MARUTHI() public payable {
+        // check if msg.sender is in the list of customers
+        for (uint256 i = 0; i < customer.length; ++i) {
+            if (msg.sender == customer[i].customerAddress) {
+                require(
+                    msg.value == MaruthiManufacturer.carPrice,
+                    "The price paid does not match the price of the car"
+                );
+                require(
+                    MaruthiManufacturer.carBody.length > 0 &&
+                        MaruthiManufacturer.tyre.length >= 4,
+                    "Out of stock"
+                );
+                MaruthiManufacturer.manufacturerAddress.transfer(msg.value);
+                customer[i].car.manufacturer = MaruthiManufacturer.name;
+                customer[i].car.tyreId = int256(
+                    MaruthiManufacturer.tyre[MaruthiManufacturer.tyre.length - 1]
+                );
+                MaruthiManufacturer.tyre.pop();
+                customer[i].car.tyreId = int256(
+                    MaruthiManufacturer.tyre[MaruthiManufacturer.tyre.length - 1]
+                );
+                MaruthiManufacturer.tyre.pop();
+                customer[i].car.tyreId = int256(
+                    MaruthiManufacturer.tyre[MaruthiManufacturer.tyre.length - 1]
+                );
+                MaruthiManufacturer.tyre.pop();
+                customer[i].car.tyreId = int256(
+                    MaruthiManufacturer.tyre[MaruthiManufacturer.tyre.length - 1]
+                );
+                MaruthiManufacturer.tyre.pop();
+                customer[i].car.carBodyId = int256(
+                    MaruthiManufacturer.carBody[
+                        MaruthiManufacturer.carBody.length - 1
+                    ]
+                );
+                MaruthiManufacturer.carBody.pop();
+                customer[i].car.supplierForTyres = MaruthiManufacturer
+                    .supplierForTyres;
+                customer[i].car.supplierForBody = MaruthiManufacturer
+                    .supplierForBody;
+                customer[i].car.manufacturerAddress = MaruthiManufacturer
+                    .manufacturerAddress;
+                break;
+                
+            }
+        }
+    }
+
     function ViewCarDetails() public view returns (string memory,string memory,string memory) {
         for (uint256 i = 0; i < customer.length; ++i) {
             if (msg.sender == customer[i].customerAddress) {
@@ -349,11 +398,11 @@ contract MyContract {
             }
         }
     }
-}
+
 
 //Bidding contract------------------------------------------------------------------
 
-contract BidForCarBodies is MyContract {
+
     enum BidResult {
         WON,
         LOST,
