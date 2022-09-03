@@ -280,6 +280,22 @@ contract BidForCarBodies is MyContract {
         TataManufacturer.hashedCarBodyBid = hashedCarBodyBid;
         TataManufacturer.hashedTyreBid = hashedTyreBid;
     }
+    
+    // Here, the hash( bid ) is revealed to the supplier first. Later, (after all the manufacturers gave their bids), we ask the anufactureres to give their actual bids. We can then use the following verification function.
+    
+    /*
+    
+  function Verify( string memory hashed_bid , string memory declared_bid )
+  public
+  {
+  function callKeccak256() public pure returns(bytes32 result){
+    
+    if ( keccak256("declared_bid" ) == declared_bid ){
+      supplier.manufacturer_bid = declared_bid;
+    }
+    else return ERROR;
+  }
+    */
 
     function viewCarBodyManufacturerBid_TATA()
         public
