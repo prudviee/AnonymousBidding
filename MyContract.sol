@@ -1,4 +1,4 @@
-//SPDX-License-Identifier: MIT
+    //SPDX-License-Identifier: MIT
 pragma solidity ^0.8.7;
 
 contract MyContract {
@@ -398,10 +398,6 @@ contract MyContract {
             }
         }
     }
-
-
-//Bidding contract------------------------------------------------------------------
-
 
     enum BidResult {
         WON,
@@ -886,3 +882,4 @@ contract MyContract {
         }
     }
 }
+
