@@ -1,9 +1,8 @@
 //SPDX-License-Identifier: MIT
 pragma solidity ^0.8.7;
 
-//All the functions are written in a single contract - bidding, payment, carbuying
 contract MyContract {
-// three statuses for auction
+    
     enum AuctionStatus {
         ONGOING,
         PROCESSING,
@@ -42,9 +41,9 @@ contract MyContract {
         Car car;
     }
 
-//There can be a single struct written for a supplier but for sagregation we have written in 2 structs
     struct CarBodySupplier {
         string name;
+        //string supplierType;
         address payable carBodySupplierAddress;
         uint256[] item;
         uint256 limit;
@@ -52,13 +51,14 @@ contract MyContract {
 
     struct CarTyreSupplier {
         string name;
+        //string supplierType;
         string suppliesTo;
         address payable carTyreSupplierAddress;
         uint256[] item;
         uint256 limit;
     }
 
-//variables used for actors
+    //variables used for actors
 
     Manufacturer TataManufacturer;
     Manufacturer MaruthiManufacturer;
@@ -70,7 +70,7 @@ contract MyContract {
 
     Customer[] customer;
 
-//All the modifiers for access control of various functions
+    //add modifiers to the view functions
     modifier OnlyCarBodySupplier() {
         require(msg.sender == carBodySupplier.carBodySupplierAddress);
         _;
@@ -131,16 +131,19 @@ contract MyContract {
         _;
     }
 
-//variables for setting supply limits
+    //variables for setting supply limits-------
+
     uint256 CarTyreSupplierLimit_MRF;
     uint256 CarTyreSupplierLimit_CEAT;
     uint256 CarBodySupplierLimit_VEDANTHA;
 
-//Calculating number of carbodies needed for every manufacturer is for optimal resource distribution purpose
+    //uint CarBodySupplierLimit_VEDANTHA;
+
     uint256 NumberOfCarBodiesNeeded_TATA = numberOfCarBodiesNeeded_TATA();
     uint256 NumberOfCarBodiesNeeded_MARUTHI = numberOfCarBodiesNeeded_MARUTHI();
 
-//Listing all the manufacturers and suppliers
+    //Listing all the manufacturers and suppliers------------------------------------------------------
+
     function setTataManufacturer(
         string memory Name,
         string memory Tyres,
@@ -201,7 +204,9 @@ contract MyContract {
         });
     }
 
-// Setting supplier limits for tyres by car tyre suppliers
+    // Setting supplier limits for tyres------------------------------------------------------
+    // the 6 functions below have been tested
+
     function setCarTyreSupplierLimit_MRF(uint256 limit) public {
         require(
             msg.sender == MrfCarTyreSupplier.carTyreSupplierAddress,
@@ -241,7 +246,8 @@ contract MyContract {
         return CarBodySupplierLimit_VEDANTHA;
     }
 
-// car body counting
+    // car body counting------------------------------------------------------------
+    // two functions below are tested
 
     function numberOfCarBodiesNeeded_TATA() public view returns (uint256) {
         return CarTyreSupplierLimit_MRF / 4;
@@ -251,7 +257,8 @@ contract MyContract {
         return CarTyreSupplierLimit_CEAT / 4;
     }
 
-// add unique identifier to the car body and the car tyre(unique ID)
+    // add unique identifier to the car body and the car tyre
+
     function addTyre_MRF() public {
         require(
             msg.sender == MrfCarTyreSupplier.carTyreSupplierAddress,
@@ -282,7 +289,8 @@ contract MyContract {
         }
     }
 
-// buying the car
+    // buying the car
+
     function BuyCar_TATA() public payable {
         // check if msg.sender is in the list of customers
         for (uint256 i = 0; i < customer.length; ++i) {
@@ -379,7 +387,7 @@ contract MyContract {
             }
         }
     }
-//for viewing car details by the customer(TO BE TESTED)
+
     function ViewCarDetails() public view returns (string memory,string memory,string memory) {
         for (uint256 i = 0; i < customer.length; ++i) {
             if (msg.sender == customer[i].customerAddress) {
@@ -393,8 +401,9 @@ contract MyContract {
     }
 
 
-//BIDDING FUNCTIONS
-//BidResult enum is to set the state that which party has won the bid
+//Bidding contract------------------------------------------------------------------
+
+
     enum BidResult {
         WON,
         LOST,
@@ -404,7 +413,6 @@ contract MyContract {
     BidResult tataResult = BidResult.DRAW;
     BidResult maruthiResult = BidResult.DRAW;
 
-//This struct is used by both the parties - manufacturer and supplier. Essentially bid is the value which is placed.
     struct Bid {
         uint256 quantity;
         uint256 amount;
@@ -413,7 +421,7 @@ contract MyContract {
     uint256 carBodiesWonInAuction_TATA = 0;
     uint256 carBodiesWonInAuction_MARUTHI = 0;
 
-//placing for bids
+    //placing for bids
 
     Bid CarBodySupplierBid_VEDANTHA;
     Bid CarTyreSupplierBid_MRF;
@@ -423,9 +431,12 @@ contract MyContract {
     Bid CarTyreManufacturerBid_TATA;
     Bid CarTyreManufacturerBid_MARUTHI;
 
-//Supplier Bid Functions (set and view)
+    //Supplier Bid Functions --------------------- Input ---------------------- And Outputs -----------------------
     function carBodySupplierBid(uint256 amount) public OnlyCarBodySupplier {
-        CarBodySupplierBid_VEDANTHA = Bid(CarBodySupplierLimit_VEDANTHA,amount);
+        CarBodySupplierBid_VEDANTHA = Bid(
+            CarBodySupplierLimit_VEDANTHA,
+            amount
+        );
     }
 
     function viewCarBodySupplierBid() public view returns (Bid memory) {
@@ -448,7 +459,7 @@ contract MyContract {
         return CarTyreSupplierBid_CEAT;
     }
 
-//Manufacturer Bid Functions 
+    //Manufacturer Bid Functions --------------------- Input ---------------------- And Outputs -----------------------
 
   function carBodyManufacturerBid_TATA(
         uint256 quantity,
@@ -547,7 +558,8 @@ contract MyContract {
     {
         return CarBodyManufacturerBid_MARUTHI;
     }
-//Tyre Manufacturer Bid Functions 
+
+    //Tyre Manufacturer Bid Functions --------------------- Input ---------------------- And Outputs -----------------------
 
     function carTyreManufacturerBid_TATA(
         uint256 quantity,
@@ -593,7 +605,7 @@ contract MyContract {
         return CarTyreManufacturerBid_MARUTHI;
     }
 
-//Bidding Function for car body. detailed bidding machanism in the documentation.
+    //Bidding Function ---------------------------------------------
     function biddingForCarBody() public {
         uint256 carBodiesLeftForSupplier_VEDANTHA;
 
@@ -642,6 +654,7 @@ contract MyContract {
                     CarBodyManufacturerBid_TATA.quantity >
                     NumberOfCarBodiesNeeded_TATA
                 ) {
+                    //check the algorithm for this-------------------------------------------------------------------------------------------------------
                     if (
                         CarBodyManufacturerBid_MARUTHI.quantity +
                             CarBodyManufacturerBid_TATA.quantity <=
@@ -671,7 +684,7 @@ contract MyContract {
                         if (carBodiesLeftForSupplier_VEDANTHA != 0) {
                             if (
                                 CarBodyManufacturerBid_MARUTHI.amount >
-                                CarBodyManufacturerBid_TATA.quantity
+                                CarBodyManufacturerBid_TATA.amount
                             ) {
                                 carBodiesWonInAuction_MARUTHI += carBodiesLeftForSupplier_VEDANTHA;
                             } else {
@@ -690,7 +703,7 @@ contract MyContract {
                 } else {
                     if (
                         CarBodyManufacturerBid_MARUTHI.amount >
-                        CarBodyManufacturerBid_TATA.quantity
+                        CarBodyManufacturerBid_TATA.amount
                     ) {
                         tataResult = BidResult.LOST;
                         maruthiResult = BidResult.WON;
@@ -754,7 +767,7 @@ contract MyContract {
             ) {
                 if (
                     CarBodyManufacturerBid_MARUTHI.amount >
-                    CarBodyManufacturerBid_TATA.quantity
+                    CarBodyManufacturerBid_TATA.amount
                 ) {
                     tataResult = BidResult.LOST;
                     maruthiResult = BidResult.WON;
@@ -775,18 +788,17 @@ contract MyContract {
             }
         }
     }
-//After bidding is completed we can view the auction result here.
+
     function viewBidResult() public view returns (BidResult, BidResult) {
         return (tataResult, maruthiResult);
     }
 
-//The payments
     function MakePayment() public payable {
         if (tataResult == BidResult.WON) {
             require(
                 msg.value ==
                     carBodiesWonInAuction_TATA *
-                        CarBodySupplierBid_VEDANTHA.amount,
+                        CarBodyManufacturerBid_TATA.amount,
                 "incorrect amount"
             );
             carBodySupplier.carBodySupplierAddress.transfer(msg.value);
@@ -795,7 +807,7 @@ contract MyContract {
             require(
                 msg.value ==
                     carBodiesWonInAuction_MARUTHI *
-                        CarBodySupplierBid_VEDANTHA.amount,
+                        CarBodyManufacturerBid_MARUTHI.amount,
                 "incorrect amount"
             );
             carBodySupplier.carBodySupplierAddress.transfer(msg.value);
@@ -803,17 +815,16 @@ contract MyContract {
         }
     }
 
-//After payment the parts are delivered
     function TransferCarBody() public payable {
         if (tataResult == BidResult.WON) {
             require(
                 msg.sender == carBodySupplier.carBodySupplierAddress,
                 "only supplier can transfer the ownership"
             );
-            require(
-                TataManufacturer.paid == true,
-                "payment of the bid is pending by the manufacturer"
-            );
+            //require(
+              //  TataManufacturer.paid == true,
+                //"payment of the bid is pending by the manufacturer"
+            //);
             for (uint256 i = 0; i < carBodiesWonInAuction_TATA; ++i) {
                 TataManufacturer.carBody.push(
                     carBodySupplier.item[carBodySupplier.item.length - 1]
@@ -826,10 +837,10 @@ contract MyContract {
                 msg.sender == carBodySupplier.carBodySupplierAddress,
                 "only supplier can transfer the ownership"
             );
-            require(
-                MaruthiManufacturer.paid == true,
-                "payment of the bid is pending by the manufacturer"
-            );
+           // require(
+              //MaruthiManufacturer.paid == true,
+                //"payment of the bid is pending by the manufacturer"
+            //);
             for (uint256 i = 0; i < carBodiesWonInAuction_MARUTHI; ++i) {
                 MaruthiManufacturer.carBody.push(
                     carBodySupplier.item[carBodySupplier.item.length - 1]
@@ -838,8 +849,8 @@ contract MyContract {
             }
         }
     }
-//After payment the parts are delivered
-    function TransferCarTyre() public {
+
+    function TransferCarTyre() public payable {
         if (tataResult == BidResult.WON) {
             require(
                 msg.sender == carBodySupplier.carBodySupplierAddress,
